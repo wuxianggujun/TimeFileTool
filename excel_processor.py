@@ -106,60 +106,7 @@ class ExcelProcessor:
             print(self.sheets_info)
             logging.info(f"成功读取 {len(self.sheets_info)} 个工作表")
         return self.sheets_info    
-    
-    # @ExceptionHandler(error_message="打开Excel文件失败", return_value=[])
-    # def read_excel_structure(self, file_path: str) -> List[SheetInfo]:
-    #     """读取 Excel 文件的所有 sheet 信息"""
-
-    #     self.file_path = file_path
-
-    #     if not self.file_path:
-    #         raise FileNotFoundError("文件路径未指定")
-            
-    #     # 只测量实际读取 Excel 的时间
-    #     with PerformanceTimer("Excel读取操作"):
-    #         self.workbook = pl.read_excel(self.file_path, sheet_id=0, read_options={"n_rows": 0})
-
-    #         #workbook = pl.read_excel(self.file_path, sheet_id=0,read_options={"n_rows": 0})
-            
-    #     if isinstance(self.workbook, dict):
-    #         self.sheets_info = [
-    #             SheetInfo(sheet_id=idx, sheet_name=sheet_name)
-    #             for idx, sheet_name in enumerate(self.workbook.keys())
-    #         ]
-    #     logging.info(f"成功读取 {len(self.sheet_info)} 个工作表")
-    #     return self.sheets_info
-
-
-    # @ExceptionHandler(error_message="读取工作表数据失败", return_value=[])
-    # def read_sheet_data(self, sheet: Union[SheetInfo, int, str]) -> List[List[Any]]:
-    #     """读取指定工作表的数据"""
-    #     if not self.workbook:
-    #         raise ValueError("请先调用 read_excel_structure 方法读取工作表信息")
-        
-    #     target_sheet = None
-    #     if isinstance(sheet,SheetInfo):
-    #         target_sheet = sheet
-    #     elif isinstance(sheet, int):
-    #         if  0<= sheet < len(self.sheets_info):
-    #             target_sheet = self.sheets_info[sheet]
-    #         else:
-    #             raise ValueError(f"工作表索引超出范围: {sheet}")
-    #     elif isinstance(sheet, str):
-    #         target_sheet = next(
-    #             (s for s in self.sheets_info if s.sheet_name == sheet), None
-    #         )
-
-    #         if not target_sheet:
-    #             raise ValueError(f"未找到Sheet名为: {sheet} 的工作表")
-        
-    #     with PerformanceTimer("读取工作表数据"):
-    #         df = pl.read_excel(self.file_path, has_header=False,sheet_name=target_sheet.sheet_name)
-    #         data = df.to_numpy().tolist()
-    #         merged_cells = []
-    #         logging.info(f"成功读取工作表 {target_sheet.sheet_name} 的数据：{len(data)} 行")
-    #         return data, merged_cells
-        
+  
     @ExceptionHandler(error_message="读取工作表数据失败", return_value=([], []))
     def read_sheet_data(self, sheet: Union[SheetInfo, int, str]) -> Tuple[List[List[Any]], List[Tuple[Tuple[int, int], Tuple[int, int]]]]:
         """读取指定工作表的数据和合并单元格信息
@@ -205,25 +152,18 @@ class ExcelProcessor:
             
             if raw_merged_cells:
                 for cell_range in raw_merged_cells:
-                    try:
-                        # 获取起始和结束位置
-                        start_row, start_col = cell_range[0]
-                        end_row, end_col = cell_range[1]
+                    # 获取起始和结束位置
+                    start_row, start_col = cell_range[0]
+                    end_row, end_col = cell_range[1]
                         
-                        # 确保坐标是整数
-                        start_row, start_col = int(start_row), int(start_col)
-                        end_row, end_col = int(end_row), int(end_col)
+                    # 确保坐标是整数
+                    start_row, start_col = int(start_row), int(start_col)
+                    end_row, end_col = int(end_row), int(end_col)
                         
-                        # 记录每个合并单元格的信息
-                        logging.info(f"处理合并单元格: 起始=({start_row}, {start_col}), 结束=({end_row}, {end_col})")
+                    # 添加到合并单元格列表
+                    merged_cells.append(((start_row, start_col), (end_row, end_col)))
                         
-                        # 添加到合并单元格列表
-                        merged_cells.append(((start_row, start_col), (end_row, end_col)))
-                        
-                    except Exception as e:
-                        logging.error(f"处理合并单元格时出错: {str(e)}, cell_range={cell_range}")
-                        continue
-            
+
             logging.info(f"成功读取工作表 {target_sheet.sheet_name} 的数据：{len(data)} 行")
             logging.info(f"处理后的合并单元格信息: {merged_cells}")
             

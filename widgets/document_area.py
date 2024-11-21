@@ -5,7 +5,7 @@ from PyQt6.QtWidgets import QSizePolicy
 from models.table_model import TableModel
 from excel_processor import ExcelProcessor
 from models.decorators import ExceptionHandler
-from widgets.table_view import MergedTableView
+from widgets.merged_table_view import MergedTableView
 import numpy as np
 import logging
 
@@ -108,18 +108,6 @@ class DocumentTab(QWidget):
             self.table_model = TableModel()
             
             self.table_view.setModel(self.table_model)
-            self.table_view.setAlternatingRowColors(True)
-            
-            # 优化表格显示
-            self.table_view.horizontalHeader().setStretchLastSection(True)
-            self.table_view.verticalHeader().setDefaultSectionSize(25)
-            self.table_view.horizontalHeader().setDefaultSectionSize(100)
-
-            # 设置选择模式为单元格选择
-            self.table_view.setSelectionMode(self.table_view.SelectionMode.ExtendedSelection)
-            self.table_view.setSelectionBehavior(self.table_view.SelectionBehavior.SelectItems)
-
-            self.stack.addWidget(self.table_view)
             
             # 初始化Excel处理器
             self.excel_processor = ExcelProcessor()
@@ -138,7 +126,7 @@ class DocumentTab(QWidget):
             if sheets_info:
                 data, merged_cells = self.excel_processor.read_sheet_data(0)
                 if data:  # 确保有数据
-                    self.table_model.setData(data)
+                    self.table_model.setData(data, merged_cells)
                     # 处理合并单元格
                     if merged_cells:
                         self.table_view.setMergedCells(merged_cells)
@@ -150,6 +138,8 @@ class DocumentTab(QWidget):
             # 连接sheet切换信号
             self.sheet_tabs.currentChanged.connect(self.change_sheet)
             
+            self.stack.addWidget(self.table_view)
+        
         self.stack.setCurrentWidget(self.table_view)
         return self.table_view
 

@@ -8,8 +8,8 @@ class TableModel(QAbstractTableModel):
     def __init__(self):
         super().__init__()
         self._data = []  # 存储所有行数据
-        self._merged_cells = []  # 存储合并单元格信息 [((start_row, start_col), (end_row, end_col)), ...]
-
+        self._merged_cells = []  # 存储合并单元格信息
+    
     def rowCount(self, parent=QModelIndex()):
         return len(self._data)
     
@@ -57,10 +57,12 @@ class TableModel(QAbstractTableModel):
 
         return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
 
-    def setData(self, data,merged_cells):
-        """设置表格数据"""
+    def setData(self, data, merged_cells=None):
+        """设置表格数据和合并单元格信息"""
         self.beginResetModel()
         self._data = data
-        self._merged_cells = merged_cells
+        if merged_cells is not None:
+            self._merged_cells = merged_cells
+            logging.info(f"TableModel设置合并单元格: {merged_cells}")
         self.endResetModel()
         return True
